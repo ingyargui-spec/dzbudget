@@ -1,10 +1,10 @@
 
 import React, { useState, useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, AreaChart, Area, XAxis } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Transaction, Category, Language } from '../types';
 import { translations } from '../translations';
 import { getBudgetInsights } from '../services/gemini';
-import { TrendingUp, Wallet, Landmark, PiggyBank, Sparkles, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, Wallet, Landmark, PiggyBank, Sparkles, AlertCircle, CheckCircle2, Heart } from 'lucide-react';
 
 interface Props {
   language: Language;
@@ -30,6 +30,7 @@ const Dashboard: React.FC<Props> = ({ language, transactions, categories, saving
 
     const income = transactions.filter(tx => tx.type === 'INCOME').reduce((acc, tx) => acc + tx.amount, 0);
     const expense = transactions.filter(tx => tx.type === 'EXPENSE').reduce((acc, tx) => acc + tx.amount, 0);
+    const monthlyIncome = currentMonthTxs.filter(tx => tx.type === 'INCOME').reduce((acc, tx) => acc + tx.amount, 0);
     const monthlyExpense = currentMonthTxs.filter(tx => tx.type === 'EXPENSE').reduce((acc, tx) => acc + tx.amount, 0);
     
     const cashBalance = transactions
@@ -51,15 +52,33 @@ const Dashboard: React.FC<Props> = ({ language, transactions, categories, saving
       return {
         id: cat.id,
         name: language === 'fr' ? cat.nameFr : cat.nameAr,
-        isEconomy: cat.nameFr.toLowerCase().includes('economie') || cat.nameFr.toLowerCase().includes('économie'),
         spent,
         limit: cat.limit,
         color: cat.color,
-        percent: cat.limit > 0 ? (spent / cat.limit) * 100 : 0
+        percent: cat.limit > 0 ? (spent / cat.limit) * 100 : 0,
+        isEconomy: cat.nameFr.toLowerCase().includes('economie') || cat.nameFr.toLowerCase().includes('économie'),
       };
     });
 
-    return { totalBalance: income - expense, monthlyExpense, cashBalance, salaryBalance, savingsBalance, categorySpending };
+    // Score de santé financière (0-100)
+    let healthScore = 100;
+    if (monthlyIncome > 0) {
+      const ratio = monthlyExpense / monthlyIncome;
+      healthScore = Math.max(0, Math.min(100, 100 - (ratio * 100)));
+    } else if (monthlyExpense > 0) {
+      healthScore = 0;
+    }
+
+    return { 
+      totalBalance: income - expense, 
+      monthlyIncome,
+      monthlyExpense, 
+      cashBalance, 
+      salaryBalance, 
+      savingsBalance, 
+      categorySpending,
+      healthScore
+    };
   }, [transactions, categories, language]);
 
   const handleAiInsights = async () => {
@@ -70,83 +89,92 @@ const Dashboard: React.FC<Props> = ({ language, transactions, categories, saving
   };
 
   const savingsPercent = savingsGoal > 0 ? (stats.savingsBalance / savingsGoal) * 100 : 0;
-  const isRtl = language === 'ar';
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Header Cards */}
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
+      {/* Dynamic Summary Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Balance Card */}
-        <div className="lg:col-span-2 mesh-bg rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl group-hover:scale-125 transition-transform duration-1000"></div>
+        {/* Main Card with Balance & Health Score */}
+        <div className="lg:col-span-2 mesh-bg rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-40 -mt-40 blur-[80px] group-hover:scale-110 transition-transform duration-1000"></div>
           
-          <div className="relative z-10">
+          <div className="relative z-10 h-full flex flex-col justify-between">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-indigo-100/60 text-xs font-bold uppercase tracking-[0.2em] mb-1">{t.totalBalance}</p>
-                <h2 className="text-5xl font-extrabold tracking-tight flex items-baseline gap-2">
-                  {stats.totalBalance.toLocaleString()}
-                  <span className="text-xl font-medium opacity-50">{t.currency}</span>
-                </h2>
+                <p className="text-indigo-100/60 text-[10px] font-black uppercase tracking-[0.3em] mb-2">{t.totalBalance}</p>
+                <div className="flex items-baseline gap-3">
+                  <h2 className="text-6xl font-black tracking-tightest">
+                    {stats.totalBalance.toLocaleString()}
+                  </h2>
+                  <span className="text-2xl font-medium opacity-40">{t.currency}</span>
+                </div>
               </div>
-              <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10">
-                <TrendingUp className="w-6 h-6 text-emerald-400" />
+              <div className="flex flex-col items-end gap-2">
+                 <div className="p-4 bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full animate-pulse ${stats.healthScore > 50 ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
+                      <span className="text-xs font-black uppercase tracking-widest">Santé: {Math.round(stats.healthScore)}%</span>
+                    </div>
+                 </div>
               </div>
             </div>
 
-            <div className="mt-12 grid grid-cols-3 gap-4">
-              <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-4 border border-white/5 hover:bg-white/15 transition-colors">
-                <div className="flex items-center gap-2 mb-2 opacity-60">
-                  <Wallet size={14} />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">{t.cash}</span>
+            <div className="mt-16 grid grid-cols-3 gap-6">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 opacity-60">
+                  <Wallet size={12} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">{t.cash}</span>
                 </div>
-                <p className="font-bold text-lg leading-none">{stats.cashBalance.toLocaleString()} <span className="text-[10px] opacity-40">DA</span></p>
+                <p className="font-extrabold text-xl">{stats.cashBalance.toLocaleString()} <span className="text-xs opacity-40">DA</span></p>
               </div>
-              <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-4 border border-white/5 hover:bg-white/15 transition-colors">
-                <div className="flex items-center gap-2 mb-2 opacity-60">
-                  <Landmark size={14} />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">{t.salary}</span>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 opacity-60">
+                  <Landmark size={12} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">{t.salary}</span>
                 </div>
-                <p className="font-bold text-lg leading-none">{stats.salaryBalance.toLocaleString()} <span className="text-[10px] opacity-40">DA</span></p>
+                <p className="font-extrabold text-xl">{stats.salaryBalance.toLocaleString()} <span className="text-xs opacity-40">DA</span></p>
               </div>
-              <div className="bg-emerald-500/20 backdrop-blur-lg rounded-3xl p-4 border border-emerald-500/20 hover:bg-emerald-500/30 transition-colors">
-                <div className="flex items-center gap-2 mb-2 text-emerald-300">
-                  <PiggyBank size={14} />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">ÉPARGNE</span>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-emerald-300">
+                  <PiggyBank size={12} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">EPARGNE</span>
                 </div>
-                <p className="font-bold text-lg leading-none text-emerald-50">{stats.savingsBalance.toLocaleString()} <span className="text-[10px] opacity-40">DA</span></p>
+                <p className="font-extrabold text-xl text-emerald-50">{stats.savingsBalance.toLocaleString()} <span className="text-xs opacity-40">DA</span></p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Savings Goal Progress */}
-        <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100 flex flex-col justify-between group">
+        {/* Savings Goal Premium Card */}
+        <div className="bg-white rounded-[3rem] p-10 shadow-2xl border border-slate-100 flex flex-col justify-between group relative overflow-hidden">
+          <div className="absolute bottom-0 right-0 opacity-[0.03] -mr-10 -mb-10">
+            <PiggyBank size={200} />
+          </div>
           <div>
-            <div className="flex justify-between items-center mb-6">
-              <span className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
-                <Sparkles size={20} />
-              </span>
-              <span className={`text-[10px] font-black px-3 py-1 rounded-full ${savingsPercent >= 100 ? 'bg-emerald-100 text-emerald-600' : 'bg-indigo-50 text-indigo-600'}`}>
-                {savingsPercent >= 100 ? t.goalReached : t.savingsGoal}
-              </span>
+            <div className="flex justify-between items-center mb-10">
+              <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-inner">
+                <Sparkles size={24} />
+              </div>
+              <div className={`px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase ${savingsPercent >= 100 ? 'bg-emerald-100 text-emerald-600' : 'bg-indigo-50 text-indigo-600'}`}>
+                {savingsPercent >= 100 ? 'Succès' : 'En cours'}
+              </div>
             </div>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">{t.savingsProgress}</p>
-            <h3 className="text-3xl font-black text-slate-900 mb-1">
+            <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2">{t.savingsProgress}</p>
+            <h3 className="text-4xl font-black text-slate-900 tracking-tightest">
               {stats.savingsBalance.toLocaleString()}
-              <span className="text-lg text-slate-300 ml-1">DA</span>
+              <span className="text-lg text-slate-300 ml-2 font-bold">DA</span>
             </h3>
-            <p className="text-sm text-slate-400">Objectif: <span className="font-bold text-slate-600">{savingsGoal.toLocaleString()}</span></p>
+            <p className="text-sm text-slate-400 mt-2 font-medium">Cible: <span className="font-bold text-slate-900">{savingsGoal.toLocaleString()} DA</span></p>
           </div>
           
-          <div className="mt-8">
-            <div className="flex justify-between text-[10px] font-black text-slate-400 mb-2">
-              <span>PROGRESSION</span>
-              <span className={savingsPercent >= 100 ? 'text-emerald-500' : 'text-indigo-500'}>{Math.round(savingsPercent)}%</span>
+          <div className="mt-12 relative">
+            <div className="flex justify-between text-[11px] font-black text-slate-800 mb-3">
+              <span>{Math.round(savingsPercent)}% COMPLÉTÉ</span>
+              <span className="text-indigo-600">{((savingsGoal - stats.savingsBalance) > 0 ? (savingsGoal - stats.savingsBalance) : 0).toLocaleString()} DA RESTANT</span>
             </div>
-            <div className="h-4 bg-slate-100 rounded-full overflow-hidden p-1">
+            <div className="h-4 bg-slate-50 rounded-full overflow-hidden p-1 border border-slate-100">
               <div 
-                className={`h-full rounded-full transition-all duration-1000 ease-out ${savingsPercent >= 100 ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-indigo-500'}`} 
+                className={`h-full rounded-full transition-all duration-1000 ease-out ${savingsPercent >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' : 'bg-gradient-to-r from-indigo-500 to-violet-600'}`} 
                 style={{ width: `${Math.min(100, savingsPercent)}%` }}
               />
             </div>
@@ -154,44 +182,42 @@ const Dashboard: React.FC<Props> = ({ language, transactions, categories, saving
         </div>
       </div>
 
-      {/* IA Insights Section */}
-      <div className="relative overflow-hidden bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-xl">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
-              <Sparkles size={24} />
+      {/* IA Smart Advice Card */}
+      <div className="relative overflow-hidden bg-white/50 backdrop-blur-xl border border-white rounded-[3rem] p-10 shadow-xl shadow-slate-200/40 group">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 bg-slate-900 rounded-[1.5rem] flex items-center justify-center text-white shadow-2xl group-hover:rotate-6 transition-transform">
+              <Sparkles size={28} />
             </div>
             <div>
-              <h3 className="font-extrabold text-slate-800 text-xl">{t.insights}</h3>
-              <p className="text-xs text-slate-400 font-medium">Analyse temps réel par Gemini AI</p>
+              <h3 className="font-black text-slate-900 text-2xl tracking-tight">{t.insights}</h3>
+              <p className="text-sm text-slate-400 font-medium">L'intelligence artificielle analyse vos habitudes en DZD.</p>
             </div>
           </div>
           <button 
             onClick={handleAiInsights}
             disabled={loadingAi}
-            className={`px-6 py-2.5 rounded-2xl text-xs font-black transition-all ${loadingAi ? 'bg-slate-100 text-slate-400' : 'bg-slate-900 text-white hover:bg-indigo-600 hover:shadow-xl hover:shadow-indigo-100 active:scale-95'}`}
+            className={`px-10 py-5 rounded-[1.5rem] text-xs font-black tracking-widest transition-all ${loadingAi ? 'bg-slate-100 text-slate-400 animate-pulse' : 'bg-indigo-600 text-white hover:bg-slate-900 hover:shadow-2xl hover:-translate-y-1 active:scale-95'}`}
           >
             {loadingAi ? t.loading : t.getInsights}
           </button>
         </div>
         {aiInsight && (
-          <div className="text-sm text-slate-600 bg-slate-50/50 border border-slate-100 rounded-3xl p-6 leading-relaxed animate-in slide-in-from-top-2 duration-500">
+          <div className="mt-10 text-base text-slate-700 bg-white border border-slate-100 rounded-[2rem] p-8 leading-relaxed animate-in zoom-in-95 duration-500 shadow-sm font-medium">
             {aiInsight}
           </div>
         )}
       </div>
 
-      {/* Analytics Grid */}
+      {/* Analytics Visualization Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Category Distribution */}
-        <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="font-extrabold text-slate-800 text-lg flex items-center gap-3">
-               <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
-               {t.spendingByCategory}
-            </h3>
+        {/* Category Circle */}
+        <div className="bg-white p-10 rounded-[3rem] shadow-2xl border border-slate-100">
+          <div className="flex items-center gap-3 mb-10">
+             <div className="w-2 h-8 bg-indigo-500 rounded-full"></div>
+             <h3 className="font-black text-slate-900 text-xl tracking-tight">{t.spendingByCategory}</h3>
           </div>
-          <div className="h-[280px]">
+          <div className="h-[320px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -200,49 +226,52 @@ const Dashboard: React.FC<Props> = ({ language, transactions, categories, saving
                   nameKey="name"
                   cx="50%"
                   cy="50%"
-                  outerRadius={100}
-                  innerRadius={75}
-                  paddingAngle={8}
+                  outerRadius={110}
+                  innerRadius={85}
+                  paddingAngle={10}
                   stroke="none"
                 >
                   {stats.categorySpending.filter(c => c.spent > 0).map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={entry.color} className="hover:opacity-80 transition-opacity cursor-pointer" />
                   ))}
                 </Pie>
                 <Tooltip 
-                  contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 50px rgba(0,0,0,0.1)', padding: '16px 24px' }}
-                  itemStyle={{ fontWeight: '800', color: '#1e293b' }}
+                  contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)', padding: '20px 24px', fontWeight: 'bold' }}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Budget vs Actual Bars */}
-        <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100">
-          <h3 className="font-extrabold text-slate-800 text-lg mb-8 flex items-center gap-3">
-             <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-             {t.budgetVsActual}
-          </h3>
-          <div className="space-y-6 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+        {/* Budget Detailed Progress */}
+        <div className="bg-white p-10 rounded-[3rem] shadow-2xl border border-slate-100 flex flex-col">
+          <div className="flex items-center gap-3 mb-10">
+             <div className="w-2 h-8 bg-emerald-500 rounded-full"></div>
+             <h3 className="font-black text-slate-900 text-xl tracking-tight">{t.budgetVsActual}</h3>
+          </div>
+          <div className="space-y-8 overflow-y-auto max-h-[320px] pr-4 custom-scrollbar">
             {stats.categorySpending.map(cat => (
               <div key={cat.id} className="group">
-                <div className="flex justify-between items-end mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="w-8 h-8 flex items-center justify-center bg-slate-50 rounded-lg group-hover:scale-110 transition-transform">
-                      {cat.id === '1' ? '🍎' : cat.id === '2' ? '🏠' : cat.id === '3' ? '🚗' : cat.id === '7' ? '💰' : '📦'}
-                    </span>
-                    <span className="text-sm font-bold text-slate-700">{cat.name}</span>
+                <div className="flex justify-between items-center mb-3">
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl group-hover:scale-125 transition-transform duration-300 inline-block">{categories.find(c => c.id === cat.id)?.icon}</span>
+                    <div>
+                      <p className="text-sm font-black text-slate-800 tracking-tight">{cat.name}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                        {Math.round(cat.percent)}% du budget utilisé
+                      </p>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <span className={`text-[10px] font-black ${cat.percent > 100 ? 'text-rose-500' : 'text-slate-400'}`}>
-                      {cat.spent.toLocaleString()} / {cat.limit.toLocaleString()} DA
-                    </span>
+                    <p className={`text-sm font-black tracking-tight ${cat.percent > 100 ? 'text-rose-500' : 'text-slate-900'}`}>
+                      {cat.spent.toLocaleString()} DA
+                    </p>
+                    <p className="text-[10px] text-slate-300 font-bold tracking-widest uppercase">Limite: {cat.limit.toLocaleString()}</p>
                   </div>
                 </div>
-                <div className="h-3 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+                <div className="h-2.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100 p-0.5">
                   <div 
-                    className={`h-full rounded-full transition-all duration-1000 ease-out`}
+                    className="h-full rounded-full transition-all duration-1000 ease-out shadow-sm"
                     style={{ 
                       width: `${Math.min(100, cat.percent)}%`,
                       backgroundColor: cat.percent > 100 ? '#f43f5e' : cat.color
@@ -250,14 +279,9 @@ const Dashboard: React.FC<Props> = ({ language, transactions, categories, saving
                   />
                 </div>
                 {cat.percent > 100 && (
-                  <div className="mt-1 flex items-center gap-1 text-[9px] text-rose-500 font-bold">
-                    <AlertCircle size={10} /> Dépassement détecté
-                  </div>
-                )}
-                {cat.isEconomy && cat.percent >= 100 && (
-                  <div className="mt-1 flex items-center gap-1 text-[9px] text-emerald-500 font-bold">
-                    <CheckCircle2 size={10} /> Objectif épargne atteint !
-                  </div>
+                  <p className="text-[9px] text-rose-500 font-black mt-2 flex items-center gap-1 uppercase tracking-widest">
+                    <AlertCircle size={10} /> Dépassement critique
+                  </p>
                 )}
               </div>
             ))}

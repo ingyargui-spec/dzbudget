@@ -56,7 +56,7 @@ const App: React.FC = () => {
   const isRtl = language === 'ar';
 
   return (
-    <div className={`min-h-screen bg-slate-50 pb-32 ${isRtl ? 'rtl' : ''}`}>
+    <div className={`min-h-screen bg-slate-50 pb-32 ${isRtl ? 'rtl text-right' : ''}`}>
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-xl border-b border-slate-100 sticky top-0 z-30 transition-all">
         <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">

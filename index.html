@@ -16,9 +16,9 @@
         }
         [dir="rtl"] { font-family: 'Noto Sans Arabic', 'Plus Jakarta Sans', sans-serif; }
         .glass-card { 
-            background: rgba(255, 255, 255, 0.8); 
-            backdrop-filter: blur(12px); 
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.7); 
+            backdrop-filter: blur(16px); 
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
         .mesh-bg {
             background-color: #4f46e5;
@@ -31,25 +31,36 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
+    <script>
+        // Shim process.env for browser compatibility
+        window.process = window.process || { env: { API_KEY: "" } };
+    </script>
     <script type="importmap">
 {
   "imports": {
-    "@google/genai": "https://esm.sh/@google/genai@^1.38.0",
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom": "https://esm.sh/react-dom@^19.2.3/",
-    "react-dom/client": "https://esm.sh/react-dom@^19.2.3/client",
-    "recharts": "https://esm.sh/recharts@^3.7.0",
-    "lucide-react": "https://esm.sh/lucide-react@0.473.0",
+    "react": "https://esm.sh/react@19.0.0",
+    "react-dom": "https://esm.sh/react-dom@19.0.0",
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+    "recharts": "https://esm.sh/recharts@2.15.0?external=react,react-dom",
+    "lucide-react": "https://esm.sh/lucide-react@0.473.0?external=react,react-dom",
+    "@google/genai": "https://esm.sh/@google/genai@0.22.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
     "vite": "https://esm.sh/vite@^7.3.1",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/"
   }
 }
 </script>
 </head>
 <body class="text-slate-900 overflow-x-hidden">
-    <div id="root"></div>
+    <div id="root">
+        <div class="min-h-screen flex items-center justify-center bg-slate-50">
+            <div class="flex flex-col items-center gap-4">
+                <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-slate-400 font-bold animate-pulse">Lancement de DzBudget...</p>
+            </div>
+        </div>
+    </div>
     <script type="module" src="./index.tsx"></script>
 </body>
 </html>
