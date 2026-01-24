@@ -15,6 +15,7 @@ export const translations = {
     expense: "Dépense",
     cash: "Espèces (Cash)",
     salary: "Compte Salaire",
+    savingsAccount: "Compte Épargne",
     save: "Enregistrer",
     cancel: "Annuler",
     totalBalance: "Solde Total",
@@ -22,6 +23,7 @@ export const translations = {
     spendingByCategory: "Dépenses par Catégorie",
     budgetVsActual: "Budget vs Réel",
     savingsGoal: "Objectif d'Épargne",
+    savingsProgress: "Progression Épargne",
     limitReached: "Limite atteinte!",
     goalReached: "Objectif atteint!",
     insights: "Analyses IA",
@@ -30,6 +32,7 @@ export const translations = {
     recentTransactions: "Transactions Récentes",
     noTransactions: "Aucune transaction pour le moment.",
     setLimit: "Fixer la limite / l'objectif",
+    setSavingsGoal: "Fixer l'objectif du compte épargne",
     currency: "DA"
   },
   ar: {
@@ -47,13 +50,15 @@ export const translations = {
     expense: "مصروف",
     cash: "نقداً",
     salary: "حساب الراتب",
+    savingsAccount: "حساب الادخار",
     save: "حفظ",
     cancel: "إلغاء",
-    totalBalance: "الرصيد الإجمالي",
+    totalBalance: "الرصide الإجمالي",
     monthlySpending: "مصاريف الشهر",
     spendingByCategory: "المصاريف حسب الصنف",
     budgetVsActual: "الميزانية مقابل الواقع",
     savingsGoal: "هدف الادخار",
+    savingsProgress: "تطور الادخار",
     limitReached: "تم الوصول للحد!",
     goalReached: "تم تحقيق الهدف!",
     insights: "تحليلات الذكاء الاصطناعي",
@@ -62,6 +67,7 @@ export const translations = {
     recentTransactions: "آخر المعاملات",
     noTransactions: "لا توجد معاملات حاليا.",
     setLimit: "تحديد السقف / الهدف",
+    setSavingsGoal: "تحديد هدف حساب الادخار",
     currency: "دج"
   }
 };

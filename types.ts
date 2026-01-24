@@ -1,7 +1,7 @@
 
 export type Language = 'fr' | 'ar';
 
-export type AccountType = 'CASH' | 'SALARY';
+export type AccountType = 'CASH' | 'SALARY' | 'SAVINGS';
 
 export interface Category {
   id: string;

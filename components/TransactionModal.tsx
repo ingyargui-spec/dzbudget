@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Transaction, Category, AccountType, Language } from '../types';
 import { translations } from '../translations';
+import { X, Plus, Minus, CreditCard, Wallet, Landmark } from 'lucide-react';
 
 interface Props {
   language: Language;
@@ -32,89 +33,106 @@ const TransactionModal: React.FC<Props> = ({ language, categories, onClose, onSa
     onClose();
   };
 
+  const isRtl = language === 'ar';
+
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
-      <div className={`bg-white rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl border border-slate-100 ${language === 'ar' ? 'rtl font-arabic' : ''}`}>
-        <div className="flex justify-between items-center mb-8">
-           <h2 className="text-2xl font-black text-slate-800">{t.addTransaction}</h2>
-           <button onClick={onClose} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors">✕</button>
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xl flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
+      <div className={`bg-white/90 glass-card rounded-[3rem] p-10 w-full max-w-lg shadow-2xl ${isRtl ? 'rtl font-arabic text-right' : ''}`}>
+        <div className="flex justify-between items-center mb-10">
+           <h2 className="text-3xl font-black text-slate-800 tracking-tight">{t.addTransaction}</h2>
+           <button onClick={onClose} className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all active:scale-90">
+             <X size={20} />
+           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-slate-50 p-1.5 rounded-2xl flex gap-1">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Transaction Type Toggle */}
+          <div className="bg-slate-100 p-2 rounded-3xl flex gap-2">
             <button
               type="button"
               onClick={() => setType('EXPENSE')}
-              className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${type === 'EXPENSE' ? 'bg-white text-rose-500 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`flex-1 py-4 rounded-2xl text-xs font-black flex items-center justify-center gap-2 transition-all ${type === 'EXPENSE' ? 'bg-white text-rose-500 shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}
             >
-              {t.expense}
+              <Minus size={14} /> {t.expense}
             </button>
             <button
               type="button"
               onClick={() => setType('INCOME')}
-              className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${type === 'INCOME' ? 'bg-white text-emerald-500 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`flex-1 py-4 rounded-2xl text-xs font-black flex items-center justify-center gap-2 transition-all ${type === 'INCOME' ? 'bg-white text-emerald-500 shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}
             >
-              {t.income}
+              <Plus size={14} /> {t.income}
             </button>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-[10px] uppercase tracking-widest font-black text-slate-400 px-1">{t.description}</label>
+          <div className="space-y-2">
+            <label className="text-[10px] uppercase tracking-widest font-black text-slate-400 px-2">{t.description}</label>
             <input
               type="text"
               required
-              placeholder="..."
-              className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none transition-all font-medium text-slate-700"
+              placeholder="Ex: Courses supermarché..."
+              className="w-full px-6 py-5 bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white rounded-[1.5rem] outline-none transition-all font-semibold text-slate-700 placeholder:text-slate-300"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-widest font-black text-slate-400 px-1">{t.amount}</label>
-              <input
-                type="number"
-                required
-                className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none text-right font-black text-brand-600"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest font-black text-slate-400 px-2">{t.amount}</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  required
+                  className="w-full pl-6 pr-14 py-5 bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white rounded-[1.5rem] outline-none text-right font-black text-2xl text-indigo-600"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                />
+                <span className="absolute right-6 top-1/2 -translate-y-1/2 font-bold text-slate-300">DA</span>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-widest font-black text-slate-400 px-1">{t.account}</label>
-              <select
-                className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-bold text-slate-600 appearance-none"
-                value={accountType}
-                onChange={(e) => setAccountType(e.target.value as AccountType)}
-              >
-                <option value="CASH">{t.cash}</option>
-                <option value="SALARY">{t.salary}</option>
-              </select>
+            
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest font-black text-slate-400 px-2">{t.account}</label>
+              <div className="relative">
+                <select
+                  className="w-full px-6 py-5 bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white rounded-[1.5rem] outline-none font-bold text-slate-600 appearance-none transition-all"
+                  value={accountType}
+                  onChange={(e) => setAccountType(e.target.value as AccountType)}
+                >
+                  <option value="CASH">{t.cash}</option>
+                  <option value="SALARY">{t.salary}</option>
+                  <option value="SAVINGS">{t.savingsAccount}</option>
+                </select>
+                <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                   <CreditCard size={18} />
+                </div>
+              </div>
             </div>
           </div>
 
           {type === 'EXPENSE' && (
-            <div className="space-y-1.5">
-              <label className="text-[10px] uppercase tracking-widest font-black text-slate-400 px-1">{t.category}</label>
-              <select
-                className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-brand-500 outline-none font-bold text-slate-600 appearance-none"
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-              >
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest font-black text-slate-400 px-2">{t.category}</label>
+              <div className="grid grid-cols-3 gap-3">
                 {categories.map(c => (
-                  <option key={c.id} value={c.id}>
-                    {c.icon} {language === 'fr' ? c.nameFr : c.nameAr}
-                  </option>
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setCategoryId(c.id)}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${categoryId === c.id ? 'border-indigo-500 bg-indigo-50/30' : 'border-transparent bg-slate-50 grayscale hover:grayscale-0'}`}
+                  >
+                    <span className="text-2xl">{c.icon}</span>
+                    <span className="text-[9px] font-black uppercase text-slate-600">{language === 'fr' ? c.nameFr : c.nameAr}</span>
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
           )}
 
-          <div className="flex gap-4 pt-4">
+          <div className="pt-4">
             <button
               type="submit"
-              className="flex-1 py-4 bg-brand-600 text-white rounded-2xl font-black shadow-xl shadow-brand-100 hover:bg-brand-700 hover:-translate-y-1 active:translate-y-0 transition-all"
+              className="w-full py-6 bg-slate-900 text-white rounded-[1.8rem] font-black shadow-2xl shadow-indigo-200 hover:bg-indigo-600 hover:-translate-y-1 active:translate-y-0 active:scale-95 transition-all text-lg tracking-tight"
             >
               {t.save}
             </button>

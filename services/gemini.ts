@@ -7,7 +7,8 @@ export const getBudgetInsights = async (
   categories: Category[],
   language: Language
 ): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+  /* Initializing GoogleGenAI using process.env.API_KEY directly as per guidelines */
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const summary = transactions.map(t => ({
     desc: t.description,
@@ -33,6 +34,7 @@ export const getBudgetInsights = async (
       model: 'gemini-3-flash-preview',
       contents: prompt,
     });
+    /* response.text is a getter property, not a method */
     return response.text || (language === 'fr' ? "Impossible de générer des analyses." : "تعذر إنشاء التحليلات.");
   } catch (error) {
     console.error("Gemini Error:", error);
