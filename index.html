@@ -32,9 +32,7 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
     <script>
-        // Initialisation sécurisée de process.env pour le navigateur
-        window.process = window.process || {};
-        window.process.env = window.process.env || {};
+        window.process = { env: { API_KEY: "" } };
     </script>
     <script type="importmap">
 {
@@ -44,7 +42,7 @@
     "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
     "recharts": "https://esm.sh/recharts@2.15.0?external=react,react-dom",
     "lucide-react": "https://esm.sh/lucide-react@0.473.0?external=react,react-dom",
-    "@google/genai": "https://esm.sh/@google/genai@0.22.0",
+    "@google/genai": "https://esm.sh/@google/genai@0.21.0",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/",
     "vite": "https://esm.sh/vite@^7.3.1",
@@ -58,7 +56,7 @@
         <div class="min-h-screen flex items-center justify-center bg-slate-50">
             <div class="flex flex-col items-center gap-4">
                 <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                <p class="text-slate-400 font-bold">Lancement de DzBudget...</p>
+                <p class="text-slate-400 font-bold">Initialisation de DzBudget...</p>
             </div>
         </div>
     </div>
